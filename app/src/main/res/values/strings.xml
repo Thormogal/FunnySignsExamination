@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">FunnySignsExamination</string>
     <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="default_web_client_id">313236592879-31kr6pjlofhhbvka7egp7c0fqul02rq9.apps.googleusercontent.com</string>
 </resources>

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "313236592879",
+    "project_id": "funnysignsexamination",
+    "storage_bucket": "funnysignsexamination.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:313236592879:android:7fd4d2cb914ae4e866e31a",
+        "android_client_info": {
+          "package_name": "com.example.funnysignsexamination"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "313236592879-0baagd4vg5n76dmfhpqssrik36gapu2h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.funnysignsexamination",
+            "certificate_hash": "8fe935e4006f76717cc3ce76d710e1d694d3e772"
+          }
+        },
+        {
+          "client_id": "313236592879-31kr6pjlofhhbvka7egp7c0fqul02rq9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBm-lfHCq22STXfyOuCxCsKMjxb7WoLbbc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "313236592879-31kr6pjlofhhbvka7egp7c0fqul02rq9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
