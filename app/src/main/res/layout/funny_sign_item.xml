@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/myImageView"
+        android:id="@+id/buttonBar"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:background="@android:drawable/btn_dialog"
@@ -20,9 +20,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/funny_sign_image_textholder"
-        app:layout_constraintEnd_toEndOf="@+id/myImageView"
-        app:layout_constraintStart_toStartOf="@+id/myImageView"
-        app:layout_constraintTop_toBottomOf="@+id/myImageView" />
+        app:layout_constraintEnd_toEndOf="@+id/buttonBar"
+        app:layout_constraintStart_toStartOf="@+id/buttonBar"
+        app:layout_constraintTop_toBottomOf="@+id/buttonBar" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

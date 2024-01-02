@@ -4,4 +4,6 @@
     <string name="default_web_client_id">313236592879-31kr6pjlofhhbvka7egp7c0fqul02rq9.apps.googleusercontent.com</string>
     <string name="funny_sign_image_description">Picture of a funny sign</string>
     <string name="funny_sign_image_textholder">Name of a funny sign</string>
+    <string name="button_bar">Place for buttons</string>
+    <string name="add_sign">Add a funny sign</string>
 </resources>
