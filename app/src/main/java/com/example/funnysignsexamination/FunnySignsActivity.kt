@@ -1,5 +1,7 @@
 package com.example.funnysignsexamination
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -10,6 +12,8 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Firebase
@@ -22,13 +26,13 @@ class FunnySignsActivity : AppCompatActivity() {
     private lateinit var adapter: Adapter
     private lateinit var selectedImageUri: Uri
     private val db = Firebase.firestore
-
-    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            selectedImageUri = it
-            showInputDialog()
+    private val getContent =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let {
+                selectedImageUri = it
+                showInputDialog()
+            }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,10 +45,30 @@ class FunnySignsActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
         fetchSignsFromFirestore()
 
-        val addSignButton = findViewById<ImageButton>(R.id.addSignButton)
+        val addSignButton = findViewById<ImageButton>(R.id.signAddButton)
         addSignButton.setOnClickListener {
-        openImagePicker()
+                openImagePicker()
         }
+
+        val addThroughCameraButton = findViewById<ImageButton>(R.id.signCameraButton)
+        addThroughCameraButton.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.CAMERA),
+                    REQUEST_CODE
+                )
+            }
+        }
+    }
+
+    companion object {
+        private const val REQUEST_CODE = 1
     }
 
     private fun openImagePicker() {
@@ -53,6 +77,23 @@ class FunnySignsActivity : AppCompatActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.d("Permissions", "onRequestPermissionsResult called")
+        when (requestCode) {
+            REQUEST_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    openImagePicker()
+                } else {
+                    Toast.makeText(this, "Access needed to upload pictures", Toast.LENGTH_SHORT).show()
+                }
+                return
+            }
+            else -> {
+            }
+        }
     }
 
     private fun showInputDialog() {
@@ -93,13 +134,15 @@ class FunnySignsActivity : AppCompatActivity() {
     private fun uploadImageToFirebaseStorage(imageUri: Uri, name: String, location: String) {
         try {
             val storageRef = FirebaseStorage.getInstance().reference
-            val imagesRef = storageRef.child("images/${UUID.randomUUID()}_${imageUri.lastPathSegment}")
+            val imagesRef =
+                storageRef.child("images/${UUID.randomUUID()}_${imageUri.lastPathSegment}")
 
             val uploadTask = imagesRef.putFile(imageUri)
             uploadTask.addOnSuccessListener { _ ->
                 imagesRef.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
-                    val newSign = Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false)
+                    val newSign =
+                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false)
                     addSignToFirestore(newSign)
                 }
             }.addOnFailureListener { e ->
@@ -109,7 +152,6 @@ class FunnySignsActivity : AppCompatActivity() {
             Log.e("FunnySignsActivity", "Error handling image: $e")
         }
     }
-
 
 
     private fun addSignToFirestore(sign: Sign) {

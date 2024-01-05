@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         FirebaseAuth.getInstance().signInWithCredential(credential)
@@ -60,7 +61,11 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, FunnySignsActivity::class.java)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Authentication failed. Please try again.", Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        this,
+                        "Authentication failed. Please try again.",
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             }
