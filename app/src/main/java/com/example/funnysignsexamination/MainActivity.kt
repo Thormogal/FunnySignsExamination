@@ -11,8 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
@@ -22,7 +20,6 @@ import com.google.firebase.auth.GoogleAuthProvider
 class MainActivity : AppCompatActivity() {
     private lateinit var googleSignInButton: Button
     private lateinit var mGoogleSignInClient: GoogleSignInClient
-    val db = Firebase.firestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,16 +45,14 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
-                    // Google Sign In was successful, authenticate with Firebase
                     val account = task.getResult(ApiException::class.java)
                     firebaseAuthWithGoogle(account.idToken!!)
                 } catch (e: ApiException) {
-                    // Google Sign In failed, update UI appropriately
                     Log.w(TAG, "Google sign in failed", e)
                 }
             }
-
         }
+
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         FirebaseAuth.getInstance().signInWithCredential(credential)
@@ -66,7 +61,11 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, FunnySignsActivity::class.java)
                     startActivity(intent)
                 } else {
-                    Toast.makeText(this, "Authentication failed. Please try again.", Toast.LENGTH_LONG)
+                    Toast.makeText(
+                        this,
+                        "Authentication failed. Please try again.",
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                 }
             }
