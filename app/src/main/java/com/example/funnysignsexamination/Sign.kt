@@ -8,6 +8,10 @@ data class Sign(
     val rating: Double,
     val isFavourite: Boolean
 ) {
+
+    @Suppress("unused")
+    constructor() : this("", "", "", "",0.0, false)
+
     fun toMap(): Map<String, Any> {
         return mapOf(
             "id" to id,

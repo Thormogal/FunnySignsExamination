@@ -5,24 +5,24 @@
     android:layout_height="match_parent">
 
     <ImageView
-        android:id="@+id/buttonBar"
+        android:id="@+id/signImage"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:background="@android:drawable/btn_dialog"
         android:contentDescription="@string/funny_sign_image_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/baseline_clear_24" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/signText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/funny_sign_image_textholder"
-        app:layout_constraintEnd_toEndOf="@+id/buttonBar"
-        app:layout_constraintStart_toStartOf="@+id/buttonBar"
-        app:layout_constraintTop_toBottomOf="@+id/buttonBar" />
+        app:layout_constraintEnd_toEndOf="@+id/signImage"
+        app:layout_constraintStart_toStartOf="@+id/signImage"
+        app:layout_constraintTop_toBottomOf="@+id/signImage" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

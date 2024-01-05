@@ -6,4 +6,6 @@
     <string name="funny_sign_image_textholder">Name of a funny sign</string>
     <string name="button_bar">Place for buttons</string>
     <string name="add_sign">Add a funny sign</string>
+    <string name="error_loading_text">Error loading text</string>
+
 </resources>
