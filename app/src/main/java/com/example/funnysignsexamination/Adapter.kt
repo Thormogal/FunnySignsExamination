@@ -25,7 +25,8 @@ class Adapter(private val signs: MutableList<Sign>) : RecyclerView.Adapter<Adapt
 
         if (currentSign.imageUrl.isNotEmpty()) {
             holder.imageView.visibility = View.VISIBLE
-            holder.textView.visibility = View.GONE
+            holder.textView.visibility = View.VISIBLE
+            holder.textView.text = currentSign.name
             Picasso.get().load(currentSign.imageUrl).into(holder.imageView)
         } else {
             holder.imageView.visibility = View.GONE
