@@ -42,7 +42,14 @@ class FunnySignsActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.funnySignsRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
-        adapter = Adapter(mutableListOf())
+        adapter = Adapter(mutableListOf(), object : Adapter.OnSignClickListener {
+            override fun onSignClicked(fragment: DetailFragment) {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, fragment)
+                    .addToBackStack(null)
+                    .commit()
+            }
+        })
         recyclerView.adapter = adapter
         fetchSignsFromFirestore()
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/signContainerFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cardview_dark_background"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/signImageFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scaleType="centerCrop" />
+
+    <RatingBar
+        android:id="@+id/signRatingBarFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:numStars="5"
+        android:stepSize="1"
+        android:layout_gravity="center_horizontal" />
+
+    <TextView
+        android:id="@+id/signNameFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/name"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/signLocationFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/favoriteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/favorite"
+        android:onClick="onFavoriteButtonClick"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

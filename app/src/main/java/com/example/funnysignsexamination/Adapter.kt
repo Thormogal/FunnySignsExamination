@@ -1,5 +1,6 @@
 package com.example.funnysignsexamination
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class Adapter(private val signs: MutableList<Sign>) : RecyclerView.Adapter<Adapter.ViewHolder>() {
+class Adapter(private val signs: MutableList<Sign>, private val listener: OnSignClickListener) : RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.signImage)
@@ -33,6 +34,21 @@ class Adapter(private val signs: MutableList<Sign>) : RecyclerView.Adapter<Adapt
             holder.textView.visibility = View.VISIBLE
             holder.textView.text = holder.textView.context.getString(R.string.error_loading_text)
         }
+
+        holder.itemView.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("image", currentSign.imageUrl)
+            bundle.putString("name", currentSign.name)
+
+            val fragment = DetailFragment().apply {
+                arguments = bundle
+            }
+            listener.onSignClicked(fragment)
+        }
+    }
+
+    interface OnSignClickListener {
+        fun onSignClicked(fragment: DetailFragment)
     }
 
     override fun getItemCount(): Int {
