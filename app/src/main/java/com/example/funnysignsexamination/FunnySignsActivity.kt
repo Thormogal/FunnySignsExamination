@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.InputFilter
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
@@ -41,7 +42,14 @@ class FunnySignsActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.funnySignsRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
-        adapter = Adapter(mutableListOf())
+        adapter = Adapter(mutableListOf(), object : Adapter.OnSignClickListener {
+            override fun onSignClicked(fragment: DetailFragment) {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, fragment)
+                    .addToBackStack(null)
+                    .commit()
+            }
+        })
         recyclerView.adapter = adapter
         fetchSignsFromFirestore()
 
@@ -96,6 +104,10 @@ class FunnySignsActivity : AppCompatActivity() {
         }
     }
 
+    private fun setMaxTextLength(editText: EditText, maxLength: Int) {
+        editText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(maxLength))
+    }
+
     private fun showInputDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Name for sign and the location")
@@ -106,10 +118,12 @@ class FunnySignsActivity : AppCompatActivity() {
         val nameEditText = EditText(this)
         nameEditText.hint = "Name of the sign"
         inputLayout.addView(nameEditText)
+        setMaxTextLength(nameEditText, 20)
 
         val locationEditText = EditText(this)
         locationEditText.hint = "Location of the sign"
         inputLayout.addView(locationEditText)
+        setMaxTextLength(locationEditText, 25)
 
         builder.setView(inputLayout)
 

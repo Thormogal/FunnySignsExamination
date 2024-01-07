@@ -50,7 +50,8 @@
         app:layout_constraintEnd_toStartOf="@id/signCameraButton"
         app:layout_constraintStart_toStartOf="@+id/buttonBar"
         app:layout_constraintTop_toBottomOf="@+id/borderLine"
-        app:srcCompat="@drawable/baseline_signpost_24" />
+        app:srcCompat="@drawable/baseline_signpost_24"
+        tools:ignore="DuplicateSpeakableTextCheck" />
 
     <TextView
         android:id="@+id/addFunnySignText"
@@ -67,12 +68,13 @@
         android:id="@+id/signCameraButton"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:srcCompat="@drawable/baseline_photo_camera"
+        android:contentDescription="@string/add_photographed_sign"
         app:layout_constraintBottom_toBottomOf="@id/buttonBar"
         app:layout_constraintEnd_toEndOf="@id/buttonBar"
         app:layout_constraintStart_toEndOf="@+id/signAddButton"
         app:layout_constraintTop_toBottomOf="@+id/borderLine"
-        android:contentDescription="@string/add_photographed_sign" />
+        app:srcCompat="@drawable/baseline_photo_camera"
+        tools:ignore="DuplicateSpeakableTextCheck" />
 
     <TextView
         android:id="@+id/textView"
@@ -84,5 +86,20 @@
         app:layout_constraintStart_toStartOf="@id/signCameraButton"
         app:layout_constraintTop_toTopOf="@+id/signCameraButton"
         app:layout_constraintVertical_bias="0.8"/>
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        app:layout_constraintBottom_toTopOf="@id/borderLine"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

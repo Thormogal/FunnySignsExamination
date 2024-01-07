@@ -1,5 +1,6 @@
 package com.example.funnysignsexamination
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
-class Adapter(private val signs: MutableList<Sign>) : RecyclerView.Adapter<Adapter.ViewHolder>() {
+class Adapter(private val signs: MutableList<Sign>, private val listener: OnSignClickListener) : RecyclerView.Adapter<Adapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.signImage)
@@ -25,13 +26,30 @@ class Adapter(private val signs: MutableList<Sign>) : RecyclerView.Adapter<Adapt
 
         if (currentSign.imageUrl.isNotEmpty()) {
             holder.imageView.visibility = View.VISIBLE
-            holder.textView.visibility = View.GONE
+            holder.textView.visibility = View.VISIBLE
+            holder.textView.text = currentSign.name
             Picasso.get().load(currentSign.imageUrl).into(holder.imageView)
         } else {
             holder.imageView.visibility = View.GONE
             holder.textView.visibility = View.VISIBLE
             holder.textView.text = holder.textView.context.getString(R.string.error_loading_text)
         }
+
+        holder.itemView.setOnClickListener {
+            val bundle = Bundle()
+            bundle.putString("image", currentSign.imageUrl)
+            bundle.putString("name", currentSign.name)
+            bundle.putString("location", currentSign.location)
+
+            val fragment = DetailFragment().apply {
+                arguments = bundle
+            }
+            listener.onSignClicked(fragment)
+        }
+    }
+
+    interface OnSignClickListener {
+        fun onSignClicked(fragment: DetailFragment)
     }
 
     override fun getItemCount(): Int {
