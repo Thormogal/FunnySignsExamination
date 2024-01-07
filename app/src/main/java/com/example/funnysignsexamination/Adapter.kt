@@ -39,6 +39,7 @@ class Adapter(private val signs: MutableList<Sign>, private val listener: OnSign
             val bundle = Bundle()
             bundle.putString("image", currentSign.imageUrl)
             bundle.putString("name", currentSign.name)
+            bundle.putString("location", currentSign.location)
 
             val fragment = DetailFragment().apply {
                 arguments = bundle

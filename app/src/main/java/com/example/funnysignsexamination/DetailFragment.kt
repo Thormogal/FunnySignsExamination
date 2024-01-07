@@ -1,6 +1,4 @@
 package com.example.funnysignsexamination
-
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,9 +7,11 @@ import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.squareup.picasso.Picasso
 
 class DetailFragment : Fragment() {
 
+    private var totalVotes = 0
     private val ratingsMap: MutableMap<Float, Int> = mutableMapOf()
     private lateinit var signRatingBarFragment: RatingBar
 
@@ -33,11 +33,14 @@ class DetailFragment : Fragment() {
         val signImageFragment = view.findViewById<ImageView>(R.id.signImageFragment)
         val signNameFragment = view.findViewById<TextView>(R.id.signNameFragment)
         val signLocationFragment = view.findViewById<TextView>(R.id.signLocationFragment)
+        val signRatingVotesFragment = view.findViewById<TextView>(R.id.signRatingBarVotesFragment)
         signRatingBarFragment = view.findViewById(R.id.signRatingBarFragment)
 
-        signImageFragment.setImageURI(Uri.parse(imageUri))
-        signNameFragment.text = name
-        signLocationFragment.text = location
+        Picasso.get()
+            .load(imageUri)
+            .into(signImageFragment)
+        signNameFragment.text = createColoredNameString("Sign name:", name ?: "Unknown")
+        signLocationFragment.text = createColoredNameString("Sign location:", location ?: "Unknown")
 
         signRatingBarFragment.setOnRatingBarChangeListener { _, rating, fromUser ->
             if (fromUser) {
@@ -53,7 +56,12 @@ class DetailFragment : Fragment() {
                 }
 
                 val averageRating = totalRating / totalVotes
+                signRatingBarFragment.rating = averageRating
+                signRatingVotesFragment.text = createColoredNameString("Votes:", totalVotes.toString())
             }
+        }
+        view.setOnClickListener {
+            parentFragmentManager.popBackStack()
         }
     }
 }
