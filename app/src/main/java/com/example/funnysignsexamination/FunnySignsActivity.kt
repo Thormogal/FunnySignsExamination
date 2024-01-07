@@ -1,10 +1,15 @@
 package com.example.funnysignsexamination
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.text.InputFilter
 import android.util.Log
 import android.widget.EditText
@@ -15,17 +20,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.UUID
 
 class FunnySignsActivity : AppCompatActivity() {
 
     private lateinit var adapter: Adapter
     private lateinit var selectedImageUri: Uri
+    private var photoUri: Uri? = null
     private val db = Firebase.firestore
     private val getContent =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -60,11 +72,8 @@ class FunnySignsActivity : AppCompatActivity() {
 
         val addThroughCameraButton = findViewById<ImageButton>(R.id.signCameraButton)
         addThroughCameraButton.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.CAMERA
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
+            if (checkCameraPermission(this)) {
+                startCameraActivity(this, REQUEST_CODE)
             } else {
                 ActivityCompat.requestPermissions(
                     this,
@@ -74,6 +83,7 @@ class FunnySignsActivity : AppCompatActivity() {
             }
         }
     }
+
 
     companion object {
         private const val REQUEST_CODE = 1
@@ -101,6 +111,54 @@ class FunnySignsActivity : AppCompatActivity() {
             }
             else -> {
             }
+        }
+    }
+
+    private fun checkCameraPermission(activity: Activity): Boolean {
+        return ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startCameraActivity(activity: Activity, requestCode: Int) {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (intent.resolveActivity(activity.packageManager) != null) {
+            photoUri = createImageUri(activity)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+            activity.startActivityForResult(intent, requestCode)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            photoUri?.let {
+                selectedImageUri = it
+                showInputDialog()
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    fun createImageUri(context: Context): Uri {
+        val photoFile: File = createImageFile(context)
+        return FileProvider.getUriForFile(context, "com.example.funnysignsexamination.fileprovider", photoFile)
+    }
+
+    @Throws(IOException::class)
+    fun createImageFile(context: Context): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+
+        val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        if (storageDir != null && storageDir.exists() || storageDir!!.mkdirs()) {
+            return File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+            )
+        } else {
+            throw IOException("Failed to create directory or directory does not exist.")
         }
     }
 
@@ -145,29 +203,6 @@ class FunnySignsActivity : AppCompatActivity() {
         builder.show()
     }
 
-    private fun uploadImageToFirebaseStorage(imageUri: Uri, name: String, location: String) {
-        try {
-            val storageRef = FirebaseStorage.getInstance().reference
-            val imagesRef =
-                storageRef.child("images/${UUID.randomUUID()}_${imageUri.lastPathSegment}")
-
-            val uploadTask = imagesRef.putFile(imageUri)
-            uploadTask.addOnSuccessListener { _ ->
-                imagesRef.downloadUrl.addOnSuccessListener { uri ->
-                    val imageUrl = uri.toString()
-                    val newSign =
-                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false)
-                    addSignToFirestore(newSign)
-                }
-            }.addOnFailureListener { e ->
-                showToast("Error uploading image: $e")
-            }
-        } catch (e: Exception) {
-            Log.e("FunnySignsActivity", "Error handling image: $e")
-        }
-    }
-
-
     private fun addSignToFirestore(sign: Sign) {
         db.collection("signs").document(sign.id)
             .set(sign.toMap())
@@ -193,5 +228,27 @@ class FunnySignsActivity : AppCompatActivity() {
             .addOnFailureListener { e ->
                 showToast("Error fetching signs: $e")
             }
+    }
+
+    private fun uploadImageToFirebaseStorage(imageUri: Uri, name: String, location: String) {
+        try {
+            val storageRef = FirebaseStorage.getInstance().reference
+            val imagesRef =
+                storageRef.child("images/${UUID.randomUUID()}_${imageUri.lastPathSegment}")
+
+            val uploadTask = imagesRef.putFile(imageUri)
+            uploadTask.addOnSuccessListener { _ ->
+                imagesRef.downloadUrl.addOnSuccessListener { uri ->
+                    val imageUrl = uri.toString()
+                    val newSign =
+                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false)
+                    addSignToFirestore(newSign)
+                }
+            }.addOnFailureListener { e ->
+                showToast("Error uploading image: $e")
+            }
+        } catch (e: Exception) {
+            Log.e("FunnySignsActivity", "Error handling image: $e")
+        }
     }
 }
