@@ -103,7 +103,7 @@ class FunnySignsActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_CODE -> {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                    openImagePicker()
+                    startCameraActivity(this, REQUEST_CODE)
                 } else {
                     Toast.makeText(this, "Access needed to upload pictures", Toast.LENGTH_SHORT).show()
                 }
@@ -241,7 +241,7 @@ class FunnySignsActivity : AppCompatActivity() {
                 imagesRef.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
                     val newSign =
-                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false)
+                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false, listOf())
                     addSignToFirestore(newSign)
                 }
             }.addOnFailureListener { e ->
