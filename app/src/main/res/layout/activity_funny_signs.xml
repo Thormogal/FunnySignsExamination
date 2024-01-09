@@ -47,14 +47,14 @@
         android:layout_height="0dp"
         android:contentDescription="@string/add_sign"
         app:layout_constraintBottom_toBottomOf="@id/buttonBar"
-        app:layout_constraintEnd_toStartOf="@id/signCameraButton"
+        app:layout_constraintEnd_toStartOf="@id/signRandomButton"
         app:layout_constraintStart_toStartOf="@+id/buttonBar"
         app:layout_constraintTop_toBottomOf="@+id/borderLine"
         app:srcCompat="@drawable/baseline_signpost_24"
         tools:ignore="DuplicateSpeakableTextCheck" />
 
     <TextView
-        android:id="@+id/addFunnySignText"
+        android:id="@+id/signAddTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/add_sign"
@@ -65,19 +65,42 @@
         app:layout_constraintVertical_bias="0.8"/>
 
     <ImageButton
+        android:id="@+id/signRandomButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/random_sign"
+        app:layout_constraintBottom_toBottomOf="@id/buttonBar"
+        app:layout_constraintEnd_toStartOf="@id/signCameraButton"
+        app:layout_constraintStart_toEndOf="@+id/signAddButton"
+        app:layout_constraintTop_toBottomOf="@+id/borderLine"
+        app:srcCompat="@drawable/baseline_follow_the_signs_24"
+        tools:ignore="DuplicateSpeakableTextCheck" />
+
+    <TextView
+        android:id="@+id/signRandomTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/random_sign"
+        app:layout_constraintBottom_toBottomOf="@+id/signRandomButton"
+        app:layout_constraintEnd_toEndOf="@id/signRandomButton"
+        app:layout_constraintStart_toStartOf="@id/signRandomButton"
+        app:layout_constraintTop_toTopOf="@+id/signRandomButton"
+        app:layout_constraintVertical_bias="0.8"/>
+
+    <ImageButton
         android:id="@+id/signCameraButton"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:contentDescription="@string/add_photographed_sign"
         app:layout_constraintBottom_toBottomOf="@id/buttonBar"
         app:layout_constraintEnd_toEndOf="@id/buttonBar"
-        app:layout_constraintStart_toEndOf="@+id/signAddButton"
+        app:layout_constraintStart_toEndOf="@+id/signRandomButton"
         app:layout_constraintTop_toBottomOf="@+id/borderLine"
         app:srcCompat="@drawable/baseline_photo_camera"
         tools:ignore="DuplicateSpeakableTextCheck" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/signCameraTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/add_photographed_sign"
@@ -85,7 +108,7 @@
         app:layout_constraintEnd_toEndOf="@id/signCameraButton"
         app:layout_constraintStart_toStartOf="@id/signCameraButton"
         app:layout_constraintTop_toTopOf="@+id/signCameraButton"
-        app:layout_constraintVertical_bias="0.8"/>
+        app:layout_constraintVertical_bias="0.8" />
 
     <FrameLayout
         android:id="@+id/fragmentContainer"

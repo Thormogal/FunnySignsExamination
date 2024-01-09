@@ -9,6 +9,8 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.text.InputFilter
 import android.util.Log
@@ -31,12 +33,16 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.random.Random
 import java.util.UUID
 
 class FunnySignsActivity : AppCompatActivity() {
 
     private lateinit var adapter: Adapter
     private lateinit var selectedImageUri: Uri
+    private var remainingSigns: MutableList<Sign> = mutableListOf()
+    private val handler = Handler(Looper.getMainLooper())
+    private var isListCompletedToastShown = false
     private var photoUri: Uri? = null
     private val db = Firebase.firestore
     private val getContent =
@@ -47,10 +53,27 @@ class FunnySignsActivity : AppCompatActivity() {
             }
         }
 
+    companion object {
+        private const val REQUEST_CODE = 1
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_funny_signs)
 
+        setupViews()
+
+        fetchSignsFromFirestore()
+    }
+
+    private fun setupViews() {
+        setupRecyclerView()
+        setupAddSignButton()
+        setupRandomSignButton()
+        setupAddThroughCameraButton()
+    }
+
+    private fun setupRecyclerView() {
         val recyclerView = findViewById<RecyclerView>(R.id.funnySignsRecyclerView)
         recyclerView.layoutManager = GridLayoutManager(this, 2)
 
@@ -63,13 +86,63 @@ class FunnySignsActivity : AppCompatActivity() {
             }
         })
         recyclerView.adapter = adapter
-        fetchSignsFromFirestore()
+    }
 
+    private fun setupAddSignButton() {
         val addSignButton = findViewById<ImageButton>(R.id.signAddButton)
         addSignButton.setOnClickListener {
-                openImagePicker()
+            openImagePicker()
         }
+    }
 
+    private fun setupRandomSignButton() {
+        val randomSignButton = findViewById<ImageButton>(R.id.signRandomButton)
+        randomSignButton.setOnClickListener {
+            showRandomSignFragment()
+        }
+    }
+
+
+    private fun showRandomSignFragment() {
+        if (remainingSigns.isNotEmpty()) {
+            val randomIndex = Random.nextInt(remainingSigns.size)
+            val randomSign = remainingSigns[randomIndex]
+
+            val fragment = DetailFragment().apply {
+                arguments = Bundle().apply {
+                    putString("image", randomSign.imageUrl)
+                    putString("name", randomSign.name)
+                    putString("location", randomSign.location)
+                    putFloat("rating", randomSign.rating.toFloat())
+                }
+            }
+
+            supportFragmentManager.popBackStack()
+
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null)
+                .commit()
+
+            remainingSigns.removeAt(randomIndex)
+        } else {
+            if (!isListCompletedToastShown) {
+                Toast.makeText(
+                    this,
+                    "You've completed the list of signs to show!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                isListCompletedToastShown = true
+
+                handler.postDelayed({
+                    isListCompletedToastShown = false
+                }, 2000)
+            }
+        }
+    }
+
+
+    private fun setupAddThroughCameraButton() {
         val addThroughCameraButton = findViewById<ImageButton>(R.id.signCameraButton)
         addThroughCameraButton.setOnClickListener {
             if (checkCameraPermission(this)) {
@@ -84,11 +157,6 @@ class FunnySignsActivity : AppCompatActivity() {
         }
     }
 
-
-    companion object {
-        private const val REQUEST_CODE = 1
-    }
-
     private fun openImagePicker() {
         getContent.launch("image/*")
     }
@@ -97,7 +165,11 @@ class FunnySignsActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         Log.d("Permissions", "onRequestPermissionsResult called")
         when (requestCode) {
@@ -105,17 +177,22 @@ class FunnySignsActivity : AppCompatActivity() {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     startCameraActivity(this, REQUEST_CODE)
                 } else {
-                    Toast.makeText(this, "Access needed to upload pictures", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Access needed to upload pictures", Toast.LENGTH_SHORT)
+                        .show()
                 }
                 return
             }
+
             else -> {
             }
         }
     }
 
     private fun checkCameraPermission(activity: Activity): Boolean {
-        return ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(
+            activity,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCameraActivity(activity: Activity, requestCode: Int) {
@@ -130,7 +207,7 @@ class FunnySignsActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             photoUri?.let {
                 selectedImageUri = it
                 showInputDialog()
@@ -141,12 +218,17 @@ class FunnySignsActivity : AppCompatActivity() {
     @Throws(IOException::class)
     fun createImageUri(context: Context): Uri {
         val photoFile: File = createImageFile(context)
-        return FileProvider.getUriForFile(context, "com.example.funnysignsexamination.fileprovider", photoFile)
+        return FileProvider.getUriForFile(
+            context,
+            "com.example.funnysignsexamination.fileprovider",
+            photoFile
+        )
     }
 
     @Throws(IOException::class)
     fun createImageFile(context: Context): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val imageFileName = "JPEG_${timeStamp}_"
 
         val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
@@ -214,22 +296,6 @@ class FunnySignsActivity : AppCompatActivity() {
             }
     }
 
-    private fun fetchSignsFromFirestore() {
-        db.collection("signs")
-            .get()
-            .addOnSuccessListener { querySnapshot ->
-                val updatedSigns = mutableListOf<Sign>()
-                for (document in querySnapshot) {
-                    val sign = document.toObject(Sign::class.java)
-                    updatedSigns.add(sign)
-                }
-                adapter.updateData(updatedSigns)
-            }
-            .addOnFailureListener { e ->
-                showToast("Error fetching signs: $e")
-            }
-    }
-
     private fun uploadImageToFirebaseStorage(imageUri: Uri, name: String, location: String) {
         try {
             val storageRef = FirebaseStorage.getInstance().reference
@@ -241,7 +307,15 @@ class FunnySignsActivity : AppCompatActivity() {
                 imagesRef.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
                     val newSign =
-                        Sign(UUID.randomUUID().toString(), name, imageUrl, location, 0.0, false, listOf())
+                        Sign(
+                            UUID.randomUUID().toString(),
+                            name,
+                            imageUrl,
+                            location,
+                            0.0,
+                            false,
+                            listOf()
+                        )
                     addSignToFirestore(newSign)
                 }
             }.addOnFailureListener { e ->
@@ -250,5 +324,23 @@ class FunnySignsActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e("FunnySignsActivity", "Error handling image: $e")
         }
+    }
+
+    private fun fetchSignsFromFirestore() {
+        db.collection("signs")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val updatedSigns = mutableListOf<Sign>()
+                for (document in querySnapshot) {
+                    val sign = document.toObject(Sign::class.java)
+                    updatedSigns.add(sign)
+                }
+                adapter.updateData(updatedSigns)
+
+                remainingSigns = updatedSigns.toMutableList()
+            }
+            .addOnFailureListener { e ->
+                showToast("Error fetching signs: $e")
+            }
     }
 }
