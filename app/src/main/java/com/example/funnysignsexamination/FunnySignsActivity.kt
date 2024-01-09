@@ -60,7 +60,6 @@ class FunnySignsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_funny_signs)
-
         setupViews()
 
         fetchSignsFromFirestore()
@@ -215,6 +214,7 @@ class FunnySignsActivity : AppCompatActivity() {
         }
     }
 
+    //creates an URI for the temporary picture
     @Throws(IOException::class)
     fun createImageUri(context: Context): Uri {
         val photoFile: File = createImageFile(context)
@@ -225,6 +225,7 @@ class FunnySignsActivity : AppCompatActivity() {
         )
     }
 
+    //create a temporary picture in the app's specific space on the phone
     @Throws(IOException::class)
     fun createImageFile(context: Context): File {
         val timeStamp: String =
@@ -313,7 +314,6 @@ class FunnySignsActivity : AppCompatActivity() {
                             imageUrl,
                             location,
                             0.0,
-                            false,
                             listOf()
                         )
                     addSignToFirestore(newSign)
