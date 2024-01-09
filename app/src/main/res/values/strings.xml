@@ -8,8 +8,9 @@
     <string name="add_sign">Add a funny sign</string>
     <string name="error_loading_text">Error loading text</string>
     <string name="add_photographed_sign">Capture sign</string>
-    <string name="favorite">Add to your collection</string>
+    <string name="add_to_favorite">Add to your favorites</string>
     <string name="name">Name:</string>
     <string name="random_sign">Random sign</string>
+    <string name="favorites">Your favorite signs</string>
 
 </resources>

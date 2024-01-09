@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.squareup.picasso.Picasso
@@ -22,6 +23,7 @@ class DetailFragment : Fragment() {
     private lateinit var signRatingBarFragment: RatingBar
     private lateinit var signRatingVotesFragment: TextView
     private lateinit var sign: Sign
+    private lateinit var myRef: DatabaseReference
     private var userId: String? = null
     private var ratingsMap: MutableMap<String, Float> = mutableMapOf()
     private var voters: MutableList<String> = mutableListOf()
@@ -50,7 +52,6 @@ class DetailFragment : Fragment() {
             imageUrl = imageUri ?: "",
             location = location ?: "",
             rating = rating.toDouble(),
-            isFavourite = false,
             voters = mutableListOf()
         )
 
@@ -60,7 +61,6 @@ class DetailFragment : Fragment() {
         signLocationFragment = view.findViewById(R.id.signLocationFragment)
         signRatingVotesFragment = view.findViewById(R.id.signRatingBarVotesFragment)
         signRatingBarFragment = view.findViewById(R.id.signRatingBarFragment)
-
         signRatingBarFragment.rating = 0f
 
         Picasso.get()
@@ -69,16 +69,15 @@ class DetailFragment : Fragment() {
         signNameFragment.text = createColoredNameString("Sign name:", name ?: "Unknown")
         signLocationFragment.text = createColoredNameString("Sign location:", location ?: "Unknown")
 
+        myRef = Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
+            .getReference("signs").child(sign.id)
+
         signRatingBarFragment.setOnRatingBarChangeListener { _, rating, fromUser ->
             if (fromUser) {
                 userId = FirebaseAuth.getInstance().currentUser?.uid
                 if (userId != null) {
                     if (userId in voters) {
-                        Toast.makeText(
-                            context,
-                            "You have already voted on this sign!",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showToast("You have already voted on this sign!")
                         signRatingBarFragment.rating = averageRating
                     } else {
                         voters.add(userId!!)
@@ -96,9 +95,6 @@ class DetailFragment : Fragment() {
                         signRatingVotesFragment.text =
                             createColoredNameString("Votes:", totalVotes.toString())
 
-                        val database =
-                            Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
-                        val myRef = database.getReference("signs").child(sign.id)
                         myRef.child("votes").setValue(ratingsMap)
 
                         signRatingBarFragment.isClickable = false
@@ -109,6 +105,7 @@ class DetailFragment : Fragment() {
                 parentFragmentManager.popBackStack()
             }
         }
+        updateRatingFromDatabase()
     }
 
     override fun onStart() {
@@ -121,41 +118,39 @@ class DetailFragment : Fragment() {
         updateVotesAndRatings()
     }
 
+    private fun showToast(message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun updateVotesAndRatings() {
-        val database =
-            Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
-        val myRef = database.getReference("signs").child(sign.id)
         myRef.child("votes").setValue(ratingsMap)
+            .addOnSuccessListener {
+                myRef.child("votes").get().addOnSuccessListener { dataSnapshot ->
+                    val votes = dataSnapshot.value as? Map<String, Float>
+                    votes?.let {
+                        ratingsMap = it.toMutableMap()
+                        var totalRating = 0.0f
+                        totalVotes = 0
 
-        myRef.child("votes").get().addOnSuccessListener { dataSnapshot ->
-            val votes = dataSnapshot.value as? Map<String, Float>
-            if (votes != null) {
-                ratingsMap = votes.toMutableMap()
-                var totalRating = 0.0f
-                totalVotes = 0
+                        for ((_, value) in ratingsMap) {
+                            totalRating += value
+                            totalVotes++
+                        }
 
-                for ((_, value) in ratingsMap) {
-                    totalRating += value
-                    totalVotes++
+                        val averageRating = totalRating / totalVotes
+                        signRatingBarFragment.rating = averageRating
+                        signRatingVotesFragment.text =
+                            createColoredNameString("Votes:", totalVotes.toString())
+                    }
                 }
-
-                val averageRating = totalRating / totalVotes
-                signRatingBarFragment.rating = averageRating
-                signRatingVotesFragment.text =
-                    createColoredNameString("Votes:", totalVotes.toString())
             }
-        }
     }
 
     private fun updateRatingFromDatabase() {
-        val database =
-            Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
-        val myRef = database.getReference("signs").child(sign.id)
-
         myRef.child("votes").get().addOnSuccessListener { dataSnapshot ->
-            val votes = dataSnapshot.getValue() as? Map<String, Float>
-            if (votes != null) {
-                ratingsMap = votes.toMutableMap()
+            val votes = dataSnapshot.value as? Map<String, Float>
+            votes?.let {
+                ratingsMap = it.toMutableMap()
                 var totalRating = 0.0f
                 totalVotes = 0
 
