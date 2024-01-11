@@ -12,5 +12,7 @@
     <string name="name">Name:</string>
     <string name="random_sign">Random sign</string>
     <string name="favorites">Your favorite signs</string>
+    <string name="API_KEY">AIzaSyDMzlLduyVopdhmQNQwvVm-5EW9vIcfE3c</string>
+    <string name="open_in_google_maps">Show in Google Maps</string>
 
 </resources>

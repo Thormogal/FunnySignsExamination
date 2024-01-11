@@ -1,12 +1,26 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
 }
 
+val propertiesFile = rootProject.file("api_keys.properties")
+val properties = Properties()
+
+if (propertiesFile.exists()) {
+    properties.load(FileInputStream(propertiesFile))
+}
+
 android {
     namespace = "com.example.funnysignsexamination"
     compileSdk = 34
+
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.example.funnysignsexamination"
@@ -14,6 +28,7 @@ android {
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "API_KEY", properties.getProperty("API_KEY"))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -40,6 +55,7 @@ dependencies {
 
     //implementation("androidx.core:core-ktx:1.12.0")
     //implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.material:material:1.11.0")
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")

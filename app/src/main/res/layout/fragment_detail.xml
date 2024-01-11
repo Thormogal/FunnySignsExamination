@@ -13,6 +13,16 @@
         android:layout_weight="1"
         android:scaleType="fitCenter" />
 
+    <Button
+        android:id="@+id/openGoogleMapsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="5dp"
+        android:drawableLeft="@drawable/googleg_standard_color_18"
+        android:text="@string/open_in_google_maps" />
+
 
     <TextView
         android:id="@+id/signRatingBarVotesFragment"
@@ -25,10 +35,10 @@
         android:id="@+id/signRatingBarFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="2dp"
         android:numStars="5"
-        android:stepSize="1"
-        android:layout_gravity="center_horizontal" />
+        android:stepSize="1" />
 
     <TextView
         android:id="@+id/signNameFragment"
@@ -36,6 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
         android:layout_marginTop="35dp"
+        android:layout_marginEnd="15dp"
         android:text="@string/name"
         android:textSize="16sp" />
 
@@ -45,6 +56,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
         android:layout_marginBottom="15dp"
+        android:layout_marginEnd="15dp"
         android:textSize="16sp" />
+
 
 </LinearLayout>

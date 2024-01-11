@@ -43,14 +43,16 @@ class DetailFragment : Fragment() {
 
         val imageUri = arguments?.getString("image")
         val name = arguments?.getString("name")
-        val location = arguments?.getString("location")
+        val latitude = arguments?.getDouble("latitude") ?: 0.0
+        val longitude = arguments?.getDouble("longitude") ?: 0.0
         val rating = arguments?.getFloat("rating") ?: 0f
 
         sign = Sign(
             id = "",
             name = name ?: "",
             imageUrl = imageUri ?: "",
-            location = location ?: "",
+            latitude = latitude,
+            longitude = longitude,
             rating = rating.toDouble(),
             voters = mutableListOf()
         )
@@ -67,7 +69,10 @@ class DetailFragment : Fragment() {
             .load(imageUri)
             .into(signImageFragment)
         signNameFragment.text = createColoredNameString("Sign name:", name ?: "Unknown")
-        signLocationFragment.text = createColoredNameString("Sign location:", location ?: "Unknown")
+        signLocationFragment.text = createColoredNameString(
+            "Sign location:",
+            "Lat: ${sign.latitude}, Long: ${sign.longitude}"
+        )
 
         myRef = Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
             .getReference("signs").child(sign.id)

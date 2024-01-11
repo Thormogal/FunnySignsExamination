@@ -36,13 +36,15 @@ class Adapter(private val signs: MutableList<Sign>, private val listener: OnSign
         }
 
         holder.itemView.setOnClickListener {
-            val bundle = Bundle()
-            bundle.putString("id", currentSign.id)
-            bundle.putString("image", currentSign.imageUrl)
-            bundle.putString("name", currentSign.name)
-            bundle.putString("location", currentSign.location)
-            bundle.putFloat("rating", currentSign.rating.toFloat())
+            val bundle = Bundle().apply {
+                putString("id", currentSign.id)
+                putString("image", currentSign.imageUrl)
+                putString("name", currentSign.name)
+                putDouble("latitude", currentSign.latitude)
+                putDouble("longitude", currentSign.longitude)
+                putFloat("rating", currentSign.rating.toFloat())
 
+            }
             val fragment = DetailFragment().apply {
                 arguments = bundle
             }

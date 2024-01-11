@@ -7,14 +7,14 @@ import android.text.style.ForegroundColorSpan
 
 fun createColoredNameString(fixedPart: String, variablePart: String): SpannableString {
     val fullText = "$fixedPart $variablePart"
-    return SpannableString(fullText).apply {
-        setSpan(
-            ForegroundColorSpan(Color.GRAY),
-            0,
+    val spannableString = SpannableString(fullText)
+    spannableString.setSpan(
+        ForegroundColorSpan(Color.GRAY),
+        0,
             fixedPart.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
+        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+    )
+    return spannableString
 }
 
 class TextColors {
