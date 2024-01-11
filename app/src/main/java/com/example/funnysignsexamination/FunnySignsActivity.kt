@@ -15,6 +15,7 @@ import android.provider.MediaStore
 import android.text.InputFilter
 import android.util.Log
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -25,6 +26,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
@@ -40,10 +44,13 @@ class FunnySignsActivity : AppCompatActivity() {
 
     private lateinit var adapter: Adapter
     private lateinit var selectedImageUri: Uri
+    private lateinit var fragmentContainer: FrameLayout
+    private var enteredSignName: String? = null
     private var remainingSigns: MutableList<Sign> = mutableListOf()
     private val handler = Handler(Looper.getMainLooper())
     private var isListCompletedToastShown = false
     private var photoUri: Uri? = null
+    private var userPlacedMarker: LatLng? = null
     private val db = Firebase.firestore
     private val getContent =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -61,6 +68,8 @@ class FunnySignsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_funny_signs)
         setupViews()
+
+        fragmentContainer = findViewById(R.id.fragmentContainer)
 
         fetchSignsFromFirestore()
     }
@@ -111,7 +120,8 @@ class FunnySignsActivity : AppCompatActivity() {
                 arguments = Bundle().apply {
                     putString("image", randomSign.imageUrl)
                     putString("name", randomSign.name)
-                    putString("location", randomSign.location)
+                    putDouble("latitude", randomSign.latitude)
+                    putDouble("longitude", randomSign.longitude)
                     putFloat("rating", randomSign.rating.toFloat())
                 }
             }
@@ -206,13 +216,19 @@ class FunnySignsActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
-            photoUri?.let {
-                selectedImageUri = it
-                showInputDialog()
+        try {
+            if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+                photoUri?.let {
+                    selectedImageUri = it
+                    showInputDialog()
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Error handling result: ${e.message}")
         }
     }
+
 
     //creates an URI for the temporary picture
     @Throws(IOException::class)
@@ -228,63 +244,115 @@ class FunnySignsActivity : AppCompatActivity() {
     //create a temporary picture in the app's specific space on the phone
     @Throws(IOException::class)
     fun createImageFile(context: Context): File {
-        val timeStamp: String =
-            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val imageFileName = "JPEG_${timeStamp}_"
 
         val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
 
-        if (storageDir != null && storageDir.exists() || storageDir!!.mkdirs()) {
-            return File.createTempFile(
-                imageFileName,
-                ".jpg",
-                storageDir
-            )
+        if (storageDir != null && (storageDir.exists() || storageDir.mkdirs())) {
+            val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+            Log.d("CameraWtf", "Created image file: ${imageFile.absolutePath}")
+            return imageFile
         } else {
             throw IOException("Failed to create directory or directory does not exist.")
         }
     }
 
-    private fun setMaxTextLength(editText: EditText, maxLength: Int) {
-        editText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(maxLength))
+    private fun setupMapContainer(contextView: LinearLayout) {
+        val mapContainer = FrameLayout(this)
+        mapContainer.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        contextView.addView(mapContainer)
+
+        mapContainer.setOnClickListener(null)
+        mapContainer.isClickable = true
+        mapContainer.isFocusable = true
+
+        val mapFragment = SupportMapFragment()
+        supportFragmentManager.beginTransaction().replace(fragmentContainer.id, mapFragment)
+            .commit()
+
+        setupMapClickListener(mapFragment)
+    }
+
+    private fun setupMapClickListener(mapFragment: SupportMapFragment) {
+        val markerOptions = MarkerOptions()
+
+        mapFragment.getMapAsync { googleMap ->
+            Log.d("maperror", "MapAsync callback triggered")
+
+            googleMap.setOnMapClickListener { latLng ->
+                markerOptions.position(latLng)
+                googleMap.clear()
+                googleMap.addMarker(markerOptions)
+
+                userPlacedMarker = latLng
+
+                Log.d("maperror", "Selected LatLng: $latLng")
+
+                if (enteredSignName != null && userPlacedMarker != null) {
+                    val latitude = userPlacedMarker!!.latitude
+                    val longitude = userPlacedMarker!!.longitude
+                    val location = "Lat: $latitude, Long: $longitude"
+
+                    if (enteredSignName!!.isNotBlank()) {
+                        Log.d("maperror", "Upload to Firebase: $enteredSignName, $location")
+                        uploadImageToFirebaseStorage(selectedImageUri, enteredSignName!!, location)
+                    }
+                }
+                supportFragmentManager.beginTransaction().remove(mapFragment).commit()
+            }
+        }
     }
 
     private fun showInputDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Name for sign and the location")
+        builder.setTitle("It's a siiiign!!")
 
-        val inputLayout = LinearLayout(this)
-        inputLayout.orientation = LinearLayout.VERTICAL
+        val contextView = LinearLayout(this)
+        contextView.orientation = LinearLayout.VERTICAL
 
         val nameEditText = EditText(this)
         nameEditText.hint = "Name of the sign"
-        inputLayout.addView(nameEditText)
-        setMaxTextLength(nameEditText, 20)
+        contextView.addView(nameEditText)
+        nameEditText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(20))
 
-        val locationEditText = EditText(this)
-        locationEditText.hint = "Location of the sign"
-        inputLayout.addView(locationEditText)
-        setMaxTextLength(locationEditText, 25)
-
-        builder.setView(inputLayout)
-
-        builder.setPositiveButton("OK") { _, _ ->
-            val name = nameEditText.text.toString()
-            val location = locationEditText.text.toString()
-
-            if (name.isNotBlank() && location.isNotBlank()) {
-                uploadImageToFirebaseStorage(selectedImageUri, name, location)
-            } else {
-                showToast("Enter both the name and the location")
-            }
-        }
+        setupMapContainer(contextView)
 
         builder.setNegativeButton("Dismiss") { dialog, _ ->
             dialog.cancel()
         }
 
+        builder.setPositiveButton("OK") { _, _ ->
+            val name = nameEditText.text.toString()
+
+            Log.d("maperror", "Name: $name")
+
+            enteredSignName = name
+
+            if (userPlacedMarker != null) {
+                val latitude = userPlacedMarker!!.latitude
+                val longitude = userPlacedMarker!!.longitude
+                val location = "Lat: $latitude, Long: $longitude"
+
+                if (name.isNotBlank()) {
+                    Log.d("maperror", "Upload to Firebase: $name, $location")
+                    uploadImageToFirebaseStorage(selectedImageUri, name, location)
+                } else {
+                    Log.d("maperror", "Name is blank")
+                    showToast("Enter the name")
+                }
+            } else {
+                Log.d("maperror", "No position selected")
+                showToast("Select a position on the map")
+            }
+        }
+        builder.setView(contextView)
         builder.show()
     }
+
 
     private fun addSignToFirestore(sign: Sign) {
         db.collection("signs").document(sign.id)
@@ -312,19 +380,26 @@ class FunnySignsActivity : AppCompatActivity() {
                             UUID.randomUUID().toString(),
                             name,
                             imageUrl,
-                            location,
+                            latitude = userPlacedMarker!!.latitude,
+                            longitude = userPlacedMarker!!.longitude,
                             0.0,
                             listOf()
                         )
                     addSignToFirestore(newSign)
+                }.addOnFailureListener { e ->
+                    showToast("Error getting image URL: $e")
+                    Log.e("eUploading", "Error getting image URL: $e")
                 }
             }.addOnFailureListener { e ->
                 showToast("Error uploading image: $e")
+                Log.e("eUploading", "Error uploading image: $e")
             }
         } catch (e: Exception) {
-            Log.e("FunnySignsActivity", "Error handling image: $e")
+            showToast("Error handling image: $e")
+            Log.e("eUploading", "Error handling image: $e")
         }
     }
+
 
     private fun fetchSignsFromFirestore() {
         db.collection("signs")
