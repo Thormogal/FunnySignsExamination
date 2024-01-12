@@ -26,6 +26,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapFragment
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -40,7 +42,7 @@ import java.util.Locale
 import kotlin.random.Random
 import java.util.UUID
 
-class FunnySignsActivity : AppCompatActivity() {
+class FunnySignsActivity : AppCompatActivity(), OnOpenMapClickListener {
 
     private lateinit var adapter: Adapter
     private lateinit var selectedImageUri: Uri
@@ -299,7 +301,7 @@ class FunnySignsActivity : AppCompatActivity() {
 
                     if (enteredSignName!!.isNotBlank()) {
                         Log.d("maperror", "Upload to Firebase: $enteredSignName, $location")
-                        uploadImageToFirebaseStorage(selectedImageUri, enteredSignName!!, location)
+                        uploadAndConnectImageWithSigns(selectedImageUri, enteredSignName!!, location)
                     }
                 }
                 supportFragmentManager.beginTransaction().remove(mapFragment).commit()
@@ -309,7 +311,7 @@ class FunnySignsActivity : AppCompatActivity() {
 
     private fun showInputDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("It's a siiiign!!")
+        builder.setTitle("It's a sign!!")
 
         val contextView = LinearLayout(this)
         contextView.orientation = LinearLayout.VERTICAL
@@ -328,8 +330,6 @@ class FunnySignsActivity : AppCompatActivity() {
         builder.setPositiveButton("OK") { _, _ ->
             val name = nameEditText.text.toString()
 
-            Log.d("maperror", "Name: $name")
-
             enteredSignName = name
 
             if (userPlacedMarker != null) {
@@ -339,7 +339,7 @@ class FunnySignsActivity : AppCompatActivity() {
 
                 if (name.isNotBlank()) {
                     Log.d("maperror", "Upload to Firebase: $name, $location")
-                    uploadImageToFirebaseStorage(selectedImageUri, name, location)
+                    uploadAndConnectImageWithSigns(selectedImageUri, name, location)
                 } else {
                     Log.d("maperror", "Name is blank")
                     showToast("Enter the name")
@@ -351,6 +351,25 @@ class FunnySignsActivity : AppCompatActivity() {
         }
         builder.setView(contextView)
         builder.show()
+    }
+
+    override fun onOpenMapClick(latitude: Double, longitude: Double) {
+        val mapFragment = SupportMapFragment()
+        supportFragmentManager.beginTransaction().replace(fragmentContainer.id, mapFragment).commit()
+        showSignOnMapWithMarker(mapFragment, latitude, longitude)
+    }
+
+    private fun showSignOnMapWithMarker (mapFragment: SupportMapFragment, latitude: Double, longitude: Double) {
+        mapFragment.getMapAsync { googleMap ->
+            val markerPosition = LatLng(latitude, longitude)
+            val markerOptions = MarkerOptions().position(markerPosition)
+            googleMap.addMarker(markerOptions)
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(markerPosition, 9.5f))
+            googleMap.setOnMapClickListener {
+                Log.d("mapclick", "Map was clicked")
+                supportFragmentManager.beginTransaction().remove(mapFragment).commit()
+            }
+        }
     }
 
 
@@ -365,7 +384,7 @@ class FunnySignsActivity : AppCompatActivity() {
             }
     }
 
-    private fun uploadImageToFirebaseStorage(imageUri: Uri, name: String, location: String) {
+    private fun uploadAndConnectImageWithSigns(imageUri: Uri, name: String, location: String) {
         try {
             val storageRef = FirebaseStorage.getInstance().reference
             val imagesRef =

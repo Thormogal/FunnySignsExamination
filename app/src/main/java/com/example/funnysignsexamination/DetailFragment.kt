@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
@@ -20,11 +22,13 @@ class DetailFragment : Fragment() {
     private lateinit var signImageFragment: ImageView
     private lateinit var signNameFragment: TextView
     private lateinit var signLocationFragment: TextView
+    private lateinit var signOpenGoogleMapsButton: Button
     private lateinit var signRatingBarFragment: RatingBar
     private lateinit var signRatingVotesFragment: TextView
     private lateinit var sign: Sign
     private lateinit var myRef: DatabaseReference
     private var userId: String? = null
+    private var userPlacedMarker: LatLng? = null
     private var ratingsMap: MutableMap<String, Float> = mutableMapOf()
     private var voters: MutableList<String> = mutableListOf()
     private var totalVotes = 0
@@ -57,10 +61,12 @@ class DetailFragment : Fragment() {
             voters = mutableListOf()
         )
 
+        userPlacedMarker = LatLng(latitude, longitude)
         voters = sign.voters.toMutableList()
         signImageFragment = view.findViewById(R.id.signImageFragment)
         signNameFragment = view.findViewById(R.id.signNameFragment)
         signLocationFragment = view.findViewById(R.id.signLocationFragment)
+        signOpenGoogleMapsButton = view.findViewById(R.id.openGoogleMapsButton)
         signRatingVotesFragment = view.findViewById(R.id.signRatingBarVotesFragment)
         signRatingBarFragment = view.findViewById(R.id.signRatingBarFragment)
         signRatingBarFragment.rating = 0f
@@ -76,6 +82,10 @@ class DetailFragment : Fragment() {
 
         myRef = Firebase.database("https://funnysignsexamination-default-rtdb.europe-west1.firebasedatabase.app")
             .getReference("signs").child(sign.id)
+
+        signOpenGoogleMapsButton.setOnClickListener {
+            (activity as OnOpenMapClickListener).onOpenMapClick(sign.latitude, sign.longitude)
+        }
 
         signRatingBarFragment.setOnRatingBarChangeListener { _, rating, fromUser ->
             if (fromUser) {
